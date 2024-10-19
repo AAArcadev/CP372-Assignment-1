@@ -11,7 +11,6 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 
 clientSocket.connect((serverName, serverPort))
 
-# try:
 # Recieves client number from server and prints it
 clientNo = clientSocket.recv(1024)
 print(clientNo.decode())
@@ -30,10 +29,3 @@ while True:
             print('Server Response:', modifiedSentence.decode())
             break
     
-# finally:
-    # print('closing socket')
-    # clientSocket.close()
-
-
-
-#clientSocket.close()
