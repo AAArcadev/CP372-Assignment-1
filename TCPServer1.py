@@ -11,13 +11,14 @@ SERVER_PORT = 120
 
 clients = {}
 client_count = 0
+client_address_list = [0,0,0]
 
 def run_server():
     global client_count
 
     #Misc Variables
     atLimitPrinted = False
-
+    
     # Bind socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((SERVER_IP, SERVER_PORT))
@@ -38,6 +39,7 @@ def run_server():
 
 def handle_client(client_socket, client_address, client_name):
     global client_count
+    global client_address_list
     print(f"{client_name} connected from {client_address}")
 
     # Log info about the connection
@@ -55,19 +57,20 @@ def handle_client(client_socket, client_address, client_name):
         if not data:
             break
         print(f"Received from {client_name}: {data}")
-        if data.lower() == "status":
+        if data.lower() == "exit":
+            print(f"{client_name} is disconnecting")
+            clients[client_name]['end_time'] = datetime.now() # Changed from 'datetime.now() to datetime.datetime.now() 
+            break
+        
+        elif data.lower() == "status":
             status_message = "Connected clients:\n"
+            clientNumOn = 0
             for name, info in clients.items():
                 start_time_str = info['start_time'].strftime('%Y-%m-%d %H:%M:%S')
                 end_time_str = info['end_time'].strftime('%Y-%m-%d %H:%M:%S') if info['end_time'] else "Still connected"
-                status_message += f"{name}: address: {client_address}, connected at {start_time_str}, ended at {end_time_str}\n"
-            client_socket.send(status_message.encode())
-        
-
-        elif data.lower() == "exit":
-            print(f"{client_name} is disconnecting")
-            clients[client_name]['end_time'] = datetime.datetime.now() # Changed from 'datetime.now() to datetime.datetime.now() 
-            break
+                status_message += f"{name}: address: {info['address']}, connected at {start_time_str}, ended at {end_time_str}\n"
+                clientNumOn += 1
+            client_socket.send(status_message.encode())    
 
         else:
             client_socket.send(f"{data} ACK".encode())
@@ -75,6 +78,7 @@ def handle_client(client_socket, client_address, client_name):
     client_socket.close()
     print(f"{client_name} disconnected")
     client_count -= 1
+    
 
 if __name__ == "__main__":
     run_server()
